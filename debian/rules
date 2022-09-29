@@ -1,0 +1,8 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+# There is a circular dependency between gomega and ginkgo during testing, so
+# skip tests.
+override_dh_auto_test:
