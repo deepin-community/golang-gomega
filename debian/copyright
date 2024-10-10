@@ -6,6 +6,10 @@ Files: *
 Copyright: 2013 Onsi Fakhouri
 License: MIT
 
+Files: matchers/support/goraph/*
+Copyright: 2014 Amit Kumar Gupta
+License: MIT
+
 Files: debian/*
 Copyright: 2015 Martín Ferrari <tincho@tincho.org>
 License: MIT

@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/matchers"
-	"golang.org/x/xerrors"
 )
 
 type CustomError struct {
@@ -15,6 +14,14 @@ type CustomError struct {
 
 func (c CustomError) Error() string {
 	return "an error"
+}
+
+type ComplexError struct {
+	Key string
+}
+
+func (t *ComplexError) Error() string {
+	return fmt.Sprintf("err: %s", t.Key)
 }
 
 var _ = Describe("MatchErrorMatcher", func() {
@@ -34,9 +41,15 @@ var _ = Describe("MatchErrorMatcher", func() {
 
 			It("should succeed when any error in the chain matches the passed error", func() {
 				innerErr := errors.New("inner error")
-				outerErr := xerrors.Errorf("outer error wrapping: %w", innerErr)
+				outerErr := fmt.Errorf("outer error wrapping: %w", innerErr)
 
 				Expect(outerErr).Should(MatchError(innerErr))
+			})
+
+			It("uses deep equality with unwrapped errors", func() {
+				innerErr := &ComplexError{Key: "abc"}
+				outerErr := fmt.Errorf("outer error wrapping: %w", &ComplexError{Key: "abc"})
+				Expect(outerErr).To(MatchError(innerErr))
 			})
 		})
 
@@ -122,15 +135,16 @@ var _ = Describe("MatchErrorMatcher", func() {
 		failuresMessages := InterceptGomegaFailures(func() {
 			Expect(errors.New("foo")).To(MatchError("bar"))
 		})
-		Expect(failuresMessages[0]).To(ContainSubstring("{s: \"foo\"}\nto match error\n    <string>: bar"))
+		Expect(failuresMessages[0]).To(ContainSubstring("foo\n    {s: \"foo\"}\nto match error\n    <string>: bar"))
 	})
 
 	It("shows negated failure message", func() {
 		failuresMessages := InterceptGomegaFailures(func() {
 			Expect(errors.New("foo")).ToNot(MatchError("foo"))
 		})
-		Expect(failuresMessages[0]).To(ContainSubstring("{s: \"foo\"}\nnot to match error\n    <string>: foo"))
+		Expect(failuresMessages[0]).To(ContainSubstring("foo\n    {s: \"foo\"}\nnot to match error\n    <string>: foo"))
 	})
+
 })
 
 type mockErr string

@@ -1,7 +1,7 @@
 package matchers_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/matchers"
 )
@@ -143,6 +143,7 @@ var _ = Describe("BeNumerically", func() {
 			success, err = (&BeNumericallyMatcher{Comparator: "~", CompareTo: []interface{}{3.0, "foo"}}).Match(5.0)
 			Expect(success).Should(BeFalse())
 			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("foo"))
 
 			success, err = (&BeNumericallyMatcher{Comparator: "==", CompareTo: []interface{}{"bar"}}).Match(5)
 			Expect(success).Should(BeFalse())
