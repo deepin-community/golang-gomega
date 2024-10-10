@@ -3,7 +3,6 @@ package ghttp_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -11,8 +10,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/ghttp/protobuf"
+	"github.com/onsi/gomega/internal/gutil"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/ghttp"
 )
@@ -60,7 +60,7 @@ var _ = Describe("TestServer", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(200))
 
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := gutil.ReadAll(resp.Body)
 			resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -70,7 +70,7 @@ var _ = Describe("TestServer", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(200))
 
-			body2, err := ioutil.ReadAll(resp.Body)
+			body2, err := gutil.ReadAll(resp.Body)
 			resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -102,7 +102,7 @@ var _ = Describe("TestServer", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(resp.StatusCode).Should(Equal(http.StatusForbidden))
 
-				data, err := ioutil.ReadAll(resp.Body)
+				data, err := gutil.ReadAll(resp.Body)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(data).Should(BeEmpty())
 			})
@@ -259,8 +259,8 @@ var _ = Describe("TestServer", func() {
 				s.AppendHandlers(func(w http.ResponseWriter, req *http.Request) {
 					// Expect(true).Should(BeFalse()) <-- would be nice to do it this way, but the test just can't be written this way
 
-					By("We're cheating a bit here -- we're throwing a GINKGO_PANIC which simulates a failed assertion")
-					panic(GINKGO_PANIC)
+					By("We're cheating a bit here -- we're pretending to throw a Ginkgo panic which simulates a failed assertion")
+					panic("defer GinkgoRecover()")
 				})
 			})
 
@@ -792,7 +792,7 @@ var _ = Describe("TestServer", func() {
 
 					Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
-					body, err := ioutil.ReadAll(resp.Body)
+					body, err := gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(body).Should(Equal([]byte("sweet")))
 
@@ -801,7 +801,7 @@ var _ = Describe("TestServer", func() {
 
 					Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
-					body, err = ioutil.ReadAll(resp.Body)
+					body, err = gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(body).Should(Equal([]byte("sour")))
 				})
@@ -820,7 +820,7 @@ var _ = Describe("TestServer", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
-					Expect(ioutil.ReadAll(resp.Body)).Should(Equal([]byte("sweet")))
+					Expect(gutil.ReadAll(resp.Body)).Should(Equal([]byte("sweet")))
 					Expect(resp.Header.Get("X-Custom-Header")).Should(Equal("my header"))
 				})
 			})
@@ -854,7 +854,7 @@ var _ = Describe("TestServer", func() {
 
 				Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
-				body, err := ioutil.ReadAll(resp.Body)
+				body, err := gutil.ReadAll(resp.Body)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(body).Should(Equal([]byte("tasty")))
 
@@ -863,7 +863,7 @@ var _ = Describe("TestServer", func() {
 
 				Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
-				body, err = ioutil.ReadAll(resp.Body)
+				body, err = gutil.ReadAll(resp.Body)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(body).Should(Equal([]byte("treat")))
 			})
@@ -881,7 +881,7 @@ var _ = Describe("TestServer", func() {
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(resp.StatusCode).Should(Equal(http.StatusOK))
-					body, err := ioutil.ReadAll(resp.Body)
+					body, err := gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(body).Should(BeEmpty())
 
@@ -905,7 +905,7 @@ var _ = Describe("TestServer", func() {
 
 					Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
-					body, err := ioutil.ReadAll(resp.Body)
+					body, err := gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(body).Should(MatchJSON("[1,2,3]"))
 				})
@@ -990,7 +990,7 @@ var _ = Describe("TestServer", func() {
 
 					Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
-					body, err := ioutil.ReadAll(resp.Body)
+					body, err := gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(body).Should(MatchJSON(`{"Key": "Jim", "Value": "Codes"}`))
 				})
@@ -1071,7 +1071,7 @@ var _ = Describe("TestServer", func() {
 					Expect(resp.StatusCode).Should(Equal(http.StatusCreated))
 
 					var received protobuf.SimpleMessage
-					body, err := ioutil.ReadAll(resp.Body)
+					body, err := gutil.ReadAll(resp.Body)
 					Expect(err).ShouldNot(HaveOccurred())
 					err = proto.Unmarshal(body, &received)
 					Expect(err).ShouldNot(HaveOccurred())

@@ -1,3 +1,24 @@
+golang-gomega (1.27.10-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Arnaud Rebillout ]
+  * Update copyright for 'matchers/support/goraph'.
+  * Bump debhelper compat to 13.
+
+  [ Shengjing Zhu ]
+  * Update section to golang
+  * Update Standards-Version to 4.6.2 (no changes)
+  * Update dependencies
+    + Add golang-github-golang-protobuf-1-5-dev
+    + Add golang-github-google-go-cmp-dev
+    + Drop golang-golang-x-xerrors-dev
+    + Drop golang-goprotobuf-dev
+    + Replace golang-gopkg-yaml.v2-dev with golang-gopkg-yaml.v3-dev
+  * Add Multi-Arch hint
+
+ -- Shengjing Zhu <zhsj@debian.org>  Tue, 01 Aug 2023 19:11:23 +0800
+
 golang-gomega (1.10.3-1) unstable; urgency=medium
 
   * Team upload.

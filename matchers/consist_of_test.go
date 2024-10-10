@@ -1,7 +1,7 @@
 package matchers_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -74,6 +74,13 @@ var _ = Describe("ConsistOf", func() {
 		})
 	})
 
+	When("provided an expectation that has a nil value", func() {
+		It("should match without failure", func() {
+			Expect([]any{1, "two", nil}).Should(ConsistOf([]any{nil, 1, "two"}))
+			Expect([]any{1, "two", "nil", nil}).ShouldNot(ConsistOf([]any{nil, nil, 1, "two"}))
+		})
+	})
+
 	Describe("FailureMessage", func() {
 		When("actual contains an extra element", func() {
 			It("prints the extra element", func() {
@@ -97,6 +104,17 @@ var _ = Describe("ConsistOf", func() {
 			})
 		})
 
+		When("actual misses a nil element", func() {
+			It("prints the missing element", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]int{2}).Should(ConsistOf(nil, 2))
+				})
+
+				expected := "Expected\n.*\\[2\\]\nto consist of\n.*\\[nil, <int>2\\]\nthe missing elements were\n.*\\[nil\\]"
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+		})
+
 		When("actual contains an extra element and misses an element", func() {
 			It("prints both the extra and missing element", func() {
 				failures := InterceptGomegaFailures(func() {
@@ -104,6 +122,76 @@ var _ = Describe("ConsistOf", func() {
 				})
 
 				expected := "Expected\n.*\\[1, 2\\]\nto consist of\n.*\\[2, 3\\]\nthe missing elements were\n.*\\[3\\]\nthe extra elements were\n.*\\[1\\]"
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+		})
+
+		When("expected was specified as an array", func() {
+			It("flattens the array in the expectation message", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]string{"A", "B", "C"}).To(ConsistOf([]string{"A", "B"}))
+				})
+
+				expected := `Expected\n.*\["A", "B", "C"\]\nto consist of\n.*: \["A", "B"\]\nthe extra elements were\n.*\["C"\]`
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+
+			It("flattens the array in the negated expectation message", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]string{"A", "B"}).NotTo(ConsistOf([]string{"A", "B"}))
+				})
+
+				expected := `Expected\n.*\["A", "B"\]\nnot to consist of\n.*: \["A", "B"\]`
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+		})
+
+		When("the expected values are the same type", func() {
+			It("uses that type for the expectation slice", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]string{"A", "B"}).To(ConsistOf("A", "C"))
+				})
+
+				expected := `to consist of
+\s*<\[\]string \| len:2, cap:2>: \["A", "C"\]
+the missing elements were
+\s*<\[\]string \| len:1, cap:1>: \["C"\]
+the extra elements were
+\s*<\[\]string \| len:1, cap:1>: \["B"\]`
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+
+			It("uses that type for the negated expectation slice", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]uint64{1, 2}).NotTo(ConsistOf(uint64(1), uint64(2)))
+				})
+
+				expected := `not to consist of\n\s*<\[\]uint64 \| len:2, cap:2>: \[1, 2\]`
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+		})
+
+		When("the expected values are different types", func() {
+			It("uses interface{} for the expectation slice", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]interface{}{1, true}).To(ConsistOf(1, "C"))
+				})
+
+				expected := `to consist of
+\s*<\[\]interface {} \| len:2, cap:2>: \[<int>1, <string>"C"\]
+the missing elements were
+\s*<\[\]string \| len:1, cap:1>: \["C"\]
+the extra elements were
+\s*<\[\]bool \| len:1, cap:1>: \[true\]`
+				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
+			})
+
+			It("uses interface{} for the negated expectation slice", func() {
+				failures := InterceptGomegaFailures(func() {
+					Expect([]interface{}{1, "B"}).NotTo(ConsistOf(1, "B"))
+				})
+
+				expected := `not to consist of\n\s*<\[\]interface {} \| len:2, cap:2>: \[<int>1, <string>"B"\]`
 				Expect(failures).To(ConsistOf(MatchRegexp(expected)))
 			})
 		})
